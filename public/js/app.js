@@ -13,7 +13,7 @@ const App = {
   },
   setUser: (user) => localStorage.setItem('lib_user', JSON.stringify(user)),
 
-  // API Call Wrapper
+  // Robust API Call Wrapper with Safe Error Handling
   async api(endpoint, method = 'GET', body = null) {
     const token = App.getToken();
     const headers = { 'Content-Type': 'application/json' };
@@ -28,17 +28,22 @@ const App = {
 
     try {
       const response = await fetch(`/api${endpoint}`, config);
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = { error: text || `Server error (${response.status})` };
+      }
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          // If unauthorized on protected endpoint
           if (endpoint.includes('/my') || endpoint.includes('/admin')) {
             App.clearAuth();
             window.location.href = '/login.html';
           }
         }
-        throw new Error(data.error || 'API Request failed');
+        throw new Error(data.error || `API Request failed with status ${response.status}`);
       }
       return data;
     } catch (err) {
@@ -87,7 +92,6 @@ const App = {
     }, 4500);
   },
 
-  // Render navigation bar dynamically based on auth state
   renderNav() {
     const navRight = document.getElementById('nav-right');
     if (!navRight) return;
