@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Book Slot Booking & Availability System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header / Navigation Bar -->
+  <header class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-book-bookmark text-xl"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">BookSlot</span>
+          <span class="text-xs block text-slate-400 font-medium">Library Management System</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="/" class="text-indigo-400 flex items-center gap-2 font-semibold">
+          <i class="fa-solid fa-compass"></i> Catalog & Slots
+        </a>
+        <a href="/dashboard.html" class="hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-user-check"></i> My Bookings
+        </a>
+        <a href="/admin.html" class="hover:text-amber-400 transition flex items-center gap-2">
+          <i class="fa-solid fa-user-shield text-amber-400"></i> Admin Center
+        </a>
+      </nav>
+
+      <div id="nav-right" class="flex items-center gap-3">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden pt-12 pb-16 border-b border-slate-800/80 bg-gradient-to-b from-indigo-950/40 via-slate-950 to-slate-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-6">
+        <i class="fa-solid fa-bolt text-indigo-400"></i> Real-time Slot Reservation Engine
+      </div>
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 max-w-4xl mx-auto leading-tight">
+        Reserve Library Books & Lock Your Time Slot <span class="bg-gradient-to-r from-indigo-400 via-sky-300 to-indigo-300 bg-clip-text text-transparent">From Anywhere</span>
+      </h1>
+      <p class="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+        Check live book copy availability, select exact hours, and book a guaranteed slot remotely to make sure your book is reserved before stepping into the library.
+      </p>
+
+      <!-- Quick Filter & Search Bar -->
+      <div class="max-w-4xl mx-auto glass-panel p-4 sm:p-6 rounded-2xl shadow-2xl border border-slate-800">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <!-- Search Input -->
+          <div class="sm:col-span-5 relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="search-input" placeholder="Search by title, author, or ISBN..."
+              class="w-full pl-11 pr-4 py-3 bg-slate-900/90 border border-slate-700/70 rounded-xl text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+          </div>
+
+          <!-- Category Filter -->
+          <div class="sm:col-span-3">
+            <select id="category-filter"
+              class="w-full px-4 py-3 bg-slate-900/90 border border-slate-700/70 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition cursor-pointer">
+              <option value="All">All Categories</option>
+            </select>
+          </div>
+
+          <!-- Date Picker for Slot Availability -->
+          <div class="sm:col-span-4 relative">
+            <i class="fa-regular fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400"></i>
+            <input type="date" id="date-picker"
+              class="w-full pl-11 pr-4 py-3 bg-slate-900/90 border border-slate-700/70 rounded-xl text-slate-100 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition cursor-pointer">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content: Catalog Grid -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+          Available Catalog
+          <span id="results-count" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-indigo-400 border border-slate-700">0 Books</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">Showing book availability for <span id="active-date-display" class="font-semibold text-indigo-300">Today</span></p>
+      </div>
+
+      <!-- Quick Category Pills -->
+      <div id="category-pills" class="flex flex-wrap items-center gap-2">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- Book Grid -->
+    <div id="books-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Loading Skeleton -->
+      <div class="col-span-full py-16 text-center text-slate-500">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-500 mb-3"></i>
+        <p class="text-sm">Loading book catalog & availability schedules...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Book Slot Booking Modal -->
+  <div id="booking-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeBookingModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div id="modal-book-content">
+        <!-- Dynamic Book & Slot Picker Content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 py-8 text-center text-slate-500 text-xs mt-auto bg-slate-950">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>© 2026 Library Book Slot Booking & Management System. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
+  <script>
+    let currentBooks = [];
+    let selectedDate = new Date().toISOString().split('T')[0];
+    let selectedBookId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const dateInput = document.getElementById('date-picker');
+      dateInput.value = selectedDate;
+      dateInput.min = selectedDate;
+
+      // Event listeners
+      document.getElementById('search-input').addEventListener('input', debounce(loadBooks, 300));
+      document.getElementById('category-filter').addEventListener('change', loadBooks);
+      dateInput.addEventListener('change', (e) => {
+        selectedDate = e.target.value;
+        loadBooks();
+      });
+
+      loadBooks();
+    });
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        setTimeout(later, wait);
+      };
+    }
+
+    async function loadBooks() {
+      const search = document.getElementById('search-input').value;
+      const category = document.getElementById('category-filter').value;
+      const date = document.getElementById('date-picker').value || selectedDate;
+
+      const grid = document.getElementById('books-grid');
+      const countEl = document.getElementById('results-count');
+      const dateDisplay = document.getElementById('active-date-display');
+      
+      dateDisplay.textContent = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+      try {
+        const data = await App.api(`/books?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&date=${date}`);
+        currentBooks = data.books;
+        countEl.textContent = `${data.books.length} Books`;
+
+        // Update category dropdown if needed
+        const catSelect = document.getElementById('category-filter');
+        if (catSelect.options.length <= 1 && data.categories) {
+          data.categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            catSelect.appendChild(opt);
+          });
+        }
+
+        renderPills(data.categories || []);
+
+        if (data.books.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full glass-panel py-16 text-center text-slate-400 rounded-2xl">
+              <i class="fa-solid fa-book-open text-4xl text-slate-600 mb-3"></i>
+              <p class="text-base font-semibold text-white">No books found</p>
+              <p class="text-xs text-slate-400 mt-1">Try adjusting your search query or filters.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = data.books.map(book => {
+          let badgeClass = 'badge-available';
+          let badgeIcon = 'fa-circle-check';
+          if (book.status_on_date === 'Fully Booked') {
+            badgeClass = 'badge-full';
+            badgeIcon = 'fa-circle-xmark';
+          } else if (book.status_on_date === 'Partially Booked') {
+            badgeClass = 'badge-partial';
+            badgeIcon = 'fa-clock';
+          }
+
+          return `
+            <div class="glass-panel rounded-2xl overflow-hidden flex flex-col hover:border-indigo-500/50 transition duration-300 group shadow-lg">
+              <div class="relative h-52 overflow-hidden bg-slate-900">
+                <img src="${book.cover_url}" alt="${book.title}" 
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100"
+                  onerror="this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'">
+                
+                <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold ${badgeClass} flex items-center gap-1.5 shadow-md backdrop-blur-md">
+                  <i class="fa-solid ${badgeIcon}"></i> ${book.status_on_date}
+                </span>
+
+                <span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-950/80 text-slate-300 border border-slate-700/80 backdrop-blur-md">
+                  <i class="fa-solid fa-layer-group text-indigo-400 mr-1"></i> ${book.total_copies} Copies
+                </span>
+              </div>
+
+              <div class="p-5 flex-1 flex flex-col">
+                <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">${book.category}</span>
+                <h3 class="text-base font-bold text-white line-clamp-1 group-hover:text-indigo-300 transition" title="${book.title}">${book.title}</h3>
+                <p class="text-xs text-slate-400 mt-1 mb-3 line-clamp-1"><i class="fa-solid fa-feather-pointed mr-1"></i> ${book.author}</p>
+                <p class="text-xs text-slate-400/80 line-clamp-2 mb-4 leading-relaxed">${book.description || 'No description provided.'}</p>
+
+                <div class="mt-auto pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                  <span class="text-xs text-slate-400 font-mono">ISBN: ${book.isbn.substring(0, 13)}</span>
+                  <button onclick="openBookingModal(${book.id})" 
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+                    <i class="fa-regular fa-clock"></i> Book Slot
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-rose-400">
+            <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i>
+            <p class="text-sm">Failed to load catalog. ${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function renderPills(categories) {
+      const pillsContainer = document.getElementById('category-pills');
+      const activeCat = document.getElementById('category-filter').value;
+      const allCats = ['All', ...categories];
+
+      pillsContainer.innerHTML = allCats.map(cat => `
+        <button onclick="selectCategoryPill('${cat}')" 
+          class="px-3 py-1 rounded-full text-xs font-medium transition ${cat === activeCat ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function selectCategoryPill(cat) {
+      document.getElementById('category-filter').value = cat;
+      loadBooks();
+    }
+
+    // Modal Control & Slot Scheduler
+    async function openBookingModal(bookId) {
+      selectedBookId = bookId;
+      const modal = document.getElementById('booking-modal');
+      const container = document.getElementById('modal-book-content');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      container.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-indigo-500 mb-3"></i>
+          <p class="text-sm">Checking real-time slot schedules...</p>
+        </div>
+      `;
+
+      try {
+        const data = await App.api(`/books/${bookId}?date=${selectedDate}`);
+        const book = data.book;
+        const slots = data.time_slots;
+
+        container.innerHTML = `
+          <div class="flex flex-col sm:flex-row gap-6 mb-6">
+            <img src="${book.cover_url}" alt="${book.title}" class="w-24 h-36 object-cover rounded-xl shadow-md border border-slate-700 bg-slate-900 shrink-0">
+            <div>
+              <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">${book.category}</span>
+              <h2 class="text-xl font-bold text-white mb-1">${book.title}</h2>
+              <p class="text-xs text-slate-400 mb-2"><i class="fa-solid fa-user-pen mr-1"></i> ${book.author}</p>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">Total Copies: <strong>${book.total_copies}</strong></span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700">ISBN: <strong class="font-mono">${book.isbn}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Date & Time Range Selection -->
+          <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Booking Date</label>
+                <input type="date" id="modal-date" value="${selectedDate}" min="${new Date().toISOString().split('T')[0]}"
+                  onchange="updateModalDate(this.value)"
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Start Time</label>
+                <select id="modal-start-time" onchange="autoSelectEndTime()" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="08:00">08:00 AM</option>
+                  <option value="09:00">09:00 AM</option>
+                  <option value="10:00" selected>10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="12:00">12:00 PM</option>
+                  <option value="13:00">01:00 PM</option>
+                  <option value="14:00">02:00 PM</option>
+                  <option value="15:00">03:00 PM</option>
+                  <option value="16:00">04:00 PM</option>
+                  <option value="17:00">05:00 PM</option>
+                  <option value="18:00">06:00 PM</option>
+                  <option value="19:00">07:00 PM</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">End Time</label>
+                <select id="modal-end-time" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="09:00">09:00 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="12:00" selected>12:00 PM</option>
+                  <option value="13:00">01:00 PM</option>
+                  <option value="14:00">02:00 PM</option>
+                  <option value="15:00">03:00 PM</option>
+                  <option value="16:00">04:00 PM</option>
+                  <option value="17:00">05:00 PM</option>
+                  <option value="18:00">06:00 PM</option>
+                  <option value="19:00">07:00 PM</option>
+                  <option value="20:00">08:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hourly Slot Availability Timeline -->
+          <div class="mb-6">
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+              <span><i class="fa-solid fa-chart-simple text-indigo-400 mr-1.5"></i> Hourly Occupancy Grid</span>
+              <span class="text-[10px] text-slate-500">Green = Free | Red = Full</span>
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              ${slots.map(s => {
+                const isAvailable = s.is_available;
+                return `
+                  <div class="p-2.5 rounded-xl border text-center transition ${isAvailable ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-300' : 'bg-rose-950/30 border-rose-500/30 text-rose-400 opacity-60'}">
+                    <span class="text-xs font-bold block">${s.display}</span>
+                    <span class="text-[10px] font-medium block mt-0.5">${s.available_copies} of ${book.total_copies} available</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <button onclick="closeBookingModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition">
+              Cancel
+            </button>
+            <button onclick="confirmSlotBooking()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
+              <i class="fa-solid fa-check"></i> Confirm & Book Slot
+            </button>
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-rose-400">
+            <p class="text-sm font-semibold">Error loading book slots: ${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function autoSelectEndTime() {
+      const startSelect = document.getElementById('modal-start-time');
+      const endSelect = document.getElementById('modal-end-time');
+      const [startH] = startSelect.value.split(':').map(Number);
+      const targetEndH = Math.min(20, startH + 2);
+      const targetVal = `${targetEndH.toString().padStart(2, '0')}:00`;
+      endSelect.value = targetVal;
+    }
+
+    function updateModalDate(newDate) {
+      selectedDate = newDate;
+      document.getElementById('date-picker').value = newDate;
+      openBookingModal(selectedBookId);
+    }
+
+    function closeBookingModal() {
+      const modal = document.getElementById('booking-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function confirmSlotBooking() {
+      const user = App.getUser();
+      if (!user) {
+        App.showToast('Please sign in or register to book a book slot.', 'warning');
+        setTimeout(() => {
+          window.location.href = '/login.html';
+        }, 1200);
+        return;
+      }
+
+      const booking_date = document.getElementById('modal-date').value;
+      const start_time = document.getElementById('modal-start-time').value;
+      const end_time = document.getElementById('modal-end-time').value;
+
+      try {
+        const res = await App.api('/bookings', 'POST', {
+          book_id: selectedBookId,
+          booking_date,
+          start_time,
+          end_time
+        });
+
+        App.showToast(res.message || 'Book slot successfully reserved!', 'success');
+        closeBookingModal();
+        loadBooks();
+
+        // Prompt to view in dashboard
+        setTimeout(() => {
+          if (confirm('Slot booked! Would you like to open your Dashboard to view your booking ticket?')) {
+            window.location.href = '/dashboard.html';
+          }
+        }, 500);
+
+      } catch (err) {
+        App.showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

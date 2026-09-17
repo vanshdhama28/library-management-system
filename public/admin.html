@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center - Library BookSlot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-amber-500 selection:text-white">
+
+  <!-- Admin Header -->
+  <header class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="/admin.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+          <i class="fa-solid fa-user-shield text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-white">BookSlot</span>
+            <span class="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              Admin Control Center
+            </span>
+          </div>
+          <span class="text-xs block text-slate-400 font-medium">System Administrator Panel</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="/" class="hover:text-indigo-400 transition flex items-center gap-2">
+          <i class="fa-solid fa-compass"></i> Public Catalog
+        </a>
+        <a href="/dashboard.html" class="hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-user-check"></i> User View
+        </a>
+      </nav>
+
+      <div id="nav-right" class="flex items-center gap-3"></div>
+    </div>
+  </header>
+
+  <!-- Admin Main Dashboard -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+    <!-- Analytics Header Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Book Catalog</span>
+          <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+            <i class="fa-solid fa-book"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline justify-between">
+          <span id="stat-books-count" class="text-3xl font-extrabold text-white">0</span>
+          <span id="stat-copies-count" class="text-xs text-slate-400 font-medium">0 copies total</span>
+        </div>
+      </div>
+
+      <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Bookings Today</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline justify-between">
+          <span id="stat-active-bookings" class="text-3xl font-extrabold text-white">0</span>
+          <span id="stat-today-bookings" class="text-xs text-slate-400 font-medium">0 today</span>
+        </div>
+      </div>
+
+      <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered Users</span>
+          <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+        <span id="stat-users-count" class="text-3xl font-extrabold text-white">0</span>
+      </div>
+
+      <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Control</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+        </div>
+        <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5 mt-1">
+          <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Operational (Full CRUD)
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs for Admin Control Sections -->
+    <div class="flex overflow-x-auto gap-2 border-b border-slate-800 pb-3 mb-8">
+      <button id="admin-tab-books" onclick="switchAdminTab('books')" 
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-indigo-600 text-white shadow-md">
+        <i class="fa-solid fa-book-medical"></i> Book Inventory CRUD
+      </button>
+
+      <button id="admin-tab-bookings" onclick="switchAdminTab('bookings')" 
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+        <i class="fa-solid fa-list-check"></i> Bookings Control & Monitor
+      </button>
+
+      <button id="admin-tab-users" onclick="switchAdminTab('users')" 
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+        <i class="fa-solid fa-users-gear"></i> User Accounts Control
+      </button>
+
+      <button id="admin-tab-settings" onclick="switchAdminTab('settings')" 
+        class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+        <i class="fa-solid fa-gears"></i> System Settings
+      </button>
+    </div>
+
+    <!-- SECTION 1: BOOK INVENTORY (CRUD) -->
+    <section id="panel-books" class="space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">Book Inventory Management</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Add, edit, or delete books and adjust copy stock counts.</p>
+        </div>
+        <button onclick="openAddBookModal()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> Add New Book
+        </button>
+      </div>
+
+      <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+        <div class="p-4 border-b border-slate-800 flex items-center gap-4">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="admin-book-search" placeholder="Search books by title, author, or ISBN..."
+              oninput="filterAdminBooks()"
+              class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Book Info</th>
+                <th class="px-4 py-3">Category</th>
+                <th class="px-4 py-3">ISBN</th>
+                <th class="px-4 py-3 text-center">Total Copies</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-books-tbody" class="divide-y divide-slate-800/60">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: BOOKINGS MONITOR & CONTROL -->
+    <section id="panel-bookings" class="space-y-6 hidden">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">System Bookings Control</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Monitor all user bookings, override statuses, or handle cancellations.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <select id="admin-booking-filter-status" onchange="loadAdminBookings()" 
+            class="px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <option value="All">All Statuses</option>
+            <option value="confirmed">Confirmed / Reserved</option>
+            <option value="checked_out">Checked Out / In Use</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Ref Code</th>
+                <th class="px-4 py-3">User</th>
+                <th class="px-4 py-3">Book Title</th>
+                <th class="px-4 py-3">Date & Slot</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-right">Change Status</th>
+              </tr>
+            </thead>
+            <tbody id="admin-bookings-tbody" class="divide-y divide-slate-800/60">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: USER ACCOUNTS CONTROL -->
+    <section id="panel-users" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-xl font-bold text-white">User Accounts Control</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Manage user roles, view activity, or suspend access.</p>
+      </div>
+
+      <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">User Name & Email</th>
+                <th class="px-4 py-3">Role</th>
+                <th class="px-4 py-3">Account Status</th>
+                <th class="px-4 py-3 text-center">Active / Total Bookings</th>
+                <th class="px-4 py-3 text-right">Admin Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody" class="divide-y divide-slate-800/60">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: SYSTEM SETTINGS -->
+    <section id="panel-settings" class="space-y-6 hidden max-w-2xl">
+      <div>
+        <h2 class="text-xl font-bold text-white">Global Booking Rules & Limits</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Configure system-wide constraints for booking durations and active limits.</p>
+      </div>
+
+      <div class="glass-panel p-6 rounded-2xl border border-slate-800 shadow-xl space-y-5">
+        <form id="admin-settings-form" onsubmit="saveAdminSettings(event)">
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Max Active Bookings Per User</label>
+            <input type="number" id="setting-max-active" min="1" max="10" required
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <span class="text-[11px] text-slate-500 mt-1 block">Maximum number of concurrent reserved slots a user can hold.</span>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Max Booking Slot Hours Per Session</label>
+            <input type="number" id="setting-max-hours" min="1" max="12" required
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <span class="text-[11px] text-slate-500 mt-1 block">Max duration (in hours) allowed for a single reservation.</span>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Max Advance Booking Days</label>
+            <input type="number" id="setting-max-advance" min="1" max="60" required
+              class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            <span class="text-[11px] text-slate-500 mt-1 block">How far into the future users can book slots (e.g. 14 days).</span>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-lg shadow-amber-600/30 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Save System Rules
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add / Edit Book Modal -->
+  <div id="book-form-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
+      <button onclick="closeBookModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h3 id="book-modal-title" class="text-lg font-bold text-white mb-4">Add New Book</h3>
+
+      <form id="book-modal-form" onsubmit="handleBookSubmit(event)">
+        <input type="hidden" id="book-form-id">
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Book Title *</label>
+            <input type="text" id="book-form-title" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Author *</label>
+              <input type="text" id="book-form-author" required class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Category *</label>
+              <input type="text" id="book-form-category" required placeholder="Technology, Fiction..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">ISBN Code *</label>
+              <input type="text" id="book-form-isbn" required placeholder="978-..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Total Copies Stock *</label>
+              <input type="number" id="book-form-copies" min="1" max="50" required value="1" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Description</label>
+            <textarea id="book-form-description" rows="2" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Cover Image URL</label>
+            <input type="url" id="book-form-cover" placeholder="https://..." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+          <button type="button" onclick="closeBookModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md">Save Book</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>
