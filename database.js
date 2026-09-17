@@ -1,12 +1,15 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const os = require('os');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-const dbPath = path.join(__dirname, 'data', 'library.db');
+// Use /tmp on Vercel serverless functions, local folder otherwise
+const dbFolder = process.env.VERCEL ? os.tmpdir() : path.join(__dirname, 'data');
+const dbPath = path.join(dbFolder, 'library.db');
 
-if (!fs.existsSync(path.join(__dirname, 'data'))) {
-  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+if (!fs.existsSync(dbFolder)) {
+  fs.mkdirSync(dbFolder, { recursive: true });
 }
 
 const db = new sqlite3.Database(dbPath);

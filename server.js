@@ -11,6 +11,24 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Lazy Database Initialization for Vercel Serverless Functions
+let dbInitialized = false;
+let dbInitPromise = null;
+
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    if (!dbInitPromise) {
+      dbInitPromise = initDatabase().then(() => {
+        dbInitialized = true;
+      }).catch(err => {
+        console.error('Database init error:', err);
+      });
+    }
+    await dbInitPromise;
+  }
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -31,19 +49,17 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Initialize database and start server
-async function startServer() {
-  try {
-    await initDatabase();
+// Local server listener
+if (!process.env.VERCEL) {
+  initDatabase().then(() => {
     app.listen(PORT, () => {
       console.log(`=======================================================`);
       console.log(`  📚 Library Booking System running on port ${PORT}`);
       console.log(`  👉 Web Portal: http://localhost:${PORT}`);
       console.log(`=======================================================`);
     });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-  }
+  });
 }
 
-startServer();
+// Export Express app for Vercel Serverless Functions
+module.exports = app;
