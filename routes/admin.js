@@ -169,7 +169,7 @@ router.get('/bookings', async (req, res) => {
 
     res.json({ bookings });
   } catch (err) {
-    console.error('Admin fetch bookings error:', err);
+    console.error('Admin fetch bookings error details:', err.stack || err);
     res.status(500).json({ error: 'Failed to fetch bookings.' });
   }
 });

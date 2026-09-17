@@ -13,7 +13,6 @@ if (!fs.existsSync(dbFolder)) {
   try { fs.mkdirSync(dbFolder, { recursive: true }); } catch (e) {}
 }
 
-// Try loading native sqlite3; if it fails (e.g. on Vercel Serverless environment), use Pure JS Data Store
 try {
   const sqlite3 = require('sqlite3').verbose();
   db = new sqlite3.Database(dbPath);
@@ -24,7 +23,6 @@ try {
   useNativeSqlite = false;
 }
 
-// Native SQLite Async Promise Wrappers
 const nativeDbAsync = {
   all: (sql, params = []) => new Promise((resolve, reject) => db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows))),
   get: (sql, params = []) => new Promise((resolve, reject) => db.get(sql, params, (err, row) => err ? reject(err) : resolve(row))),
@@ -50,11 +48,11 @@ const jsDbAsync = {
 
     // 1. Get user bookings with book info
     if (s.includes('from bookings b') && s.includes('join books bk') && s.includes('where b.user_id')) {
-      const userId = params[0];
-      const list = store.bookings
-        .filter(b => b.user_id === Number(userId))
+      const userId = Number(params[0]);
+      return store.bookings
+        .filter(b => Number(b.user_id) === userId)
         .map(b => {
-          const bk = store.books.find(x => x.id === b.book_id) || {};
+          const bk = store.books.find(x => x.id === Number(b.book_id)) || {};
           return {
             ...b,
             book_title: bk.title || '',
@@ -64,15 +62,14 @@ const jsDbAsync = {
             category: bk.category || ''
           };
         })
-        .sort((a, b) => b.booking_date.localeCompare(a.booking_date));
-      return list;
+        .sort((a, b) => (b.booking_date || '').localeCompare(a.booking_date || ''));
     }
 
     // 2. Admin bookings list
     if (s.includes('from bookings b') && s.includes('join users u') && s.includes('join books bk')) {
       let list = store.bookings.map(b => {
-        const u = store.users.find(x => x.id === b.user_id) || {};
-        const bk = store.books.find(x => x.id === b.book_id) || {};
+        const u = store.users.find(x => x.id === Number(b.user_id)) || {};
+        const bk = store.books.find(x => x.id === Number(b.book_id)) || {};
         return {
           ...b,
           user_name: u.name || 'Unknown',
@@ -82,10 +79,27 @@ const jsDbAsync = {
         };
       });
 
-      if (params.length > 0 && s.includes('b.status = ?')) {
-        list = list.filter(b => b.status === params[0]);
+      let pIdx = 0;
+      if (s.includes('b.status = ?')) {
+        const statusVal = params[pIdx++];
+        list = list.filter(b => b.status === statusVal);
       }
-      return list.sort((a, b) => b.booking_date.localeCompare(a.booking_date));
+      if (s.includes('b.booking_date = ?')) {
+        const dateVal = params[pIdx++];
+        list = list.filter(b => b.booking_date === dateVal);
+      }
+      if (s.includes('u.name like')) {
+        const term = (params[pIdx] || '').replace(/%/g, '').toLowerCase();
+        pIdx += 4;
+        list = list.filter(b => 
+          (b.user_name || '').toLowerCase().includes(term) ||
+          (b.user_email || '').toLowerCase().includes(term) ||
+          (b.book_title || '').toLowerCase().includes(term) ||
+          (b.booking_ref || '').toLowerCase().includes(term)
+        );
+      }
+
+      return list.sort((a, b) => (b.booking_date || '').localeCompare(a.booking_date || ''));
     }
 
     // 3. Bookings for book on date
@@ -95,7 +109,7 @@ const jsDbAsync = {
         b.book_id === Number(bookId) && 
         b.booking_date === date && 
         ['confirmed', 'checked_out'].includes(b.status)
-      ).sort((a, b) => a.start_time.localeCompare(b.start_time));
+      ).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
     }
 
     // 4. Bookings grouped count for date
@@ -119,18 +133,18 @@ const jsDbAsync = {
         const term = (params[pIdx] || '').replace(/%/g, '').toLowerCase();
         pIdx += 3;
         list = list.filter(b => 
-          b.title.toLowerCase().includes(term) || 
-          b.author.toLowerCase().includes(term) || 
-          b.isbn.toLowerCase().includes(term)
+          (b.title || '').toLowerCase().includes(term) || 
+          (b.author || '').toLowerCase().includes(term) || 
+          (b.isbn || '').toLowerCase().includes(term)
         );
       }
 
       if (s.includes('category = ?')) {
-        const cat = params[pIdx];
+        const cat = params[pIdx++];
         list = list.filter(b => b.category === cat);
       }
 
-      return list.sort((a, b) => a.title.localeCompare(b.title));
+      return list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     }
 
     // 6. Distinct categories
