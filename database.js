@@ -8,6 +8,7 @@ let db = null;
 
 const dbFolder = process.env.VERCEL ? os.tmpdir() : path.join(__dirname, 'data');
 const dbPath = path.join(dbFolder, 'library.db');
+const storeFile = path.join(dbFolder, 'library_store.json');
 
 if (!fs.existsSync(dbFolder)) {
   try { fs.mkdirSync(dbFolder, { recursive: true }); } catch (e) {}
@@ -29,7 +30,7 @@ const nativeDbAsync = {
   run: (sql, params = []) => new Promise((resolve, reject) => db.run(sql, params, function(err) { err ? reject(err) : resolve({ id: this.lastID, changes: this.changes }); }))
 };
 
-// Pure JS Storage Engine (Zero Native Dependencies - Vercel Safe)
+// Pure JS Storage Engine with Persistent File Sync (Vercel & Multi-Instance Safe)
 const store = {
   users: [],
   books: [],
@@ -42,8 +43,35 @@ const store = {
   autoId: { users: 1, books: 1, bookings: 1 }
 };
 
+function loadStore() {
+  if (fs.existsSync(storeFile)) {
+    try {
+      const raw = fs.readFileSync(storeFile, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        store.users = parsed.users || [];
+        store.books = parsed.books || [];
+        store.bookings = parsed.bookings || [];
+        store.settings = parsed.settings || store.settings;
+        store.autoId = parsed.autoId || store.autoId;
+      }
+    } catch (e) {
+      console.error('Error loading store file:', e);
+    }
+  }
+}
+
+function saveStore() {
+  try {
+    fs.writeFileSync(storeFile, JSON.stringify(store, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving store file:', e);
+  }
+}
+
 const jsDbAsync = {
   all: async (sql, params = []) => {
+    loadStore();
     const s = sql.toLowerCase();
 
     // 1. Get user bookings with book info
@@ -188,6 +216,7 @@ const jsDbAsync = {
   },
 
   get: async (sql, params = []) => {
+    loadStore();
     const s = sql.toLowerCase();
 
     // User by email
@@ -273,7 +302,9 @@ const jsDbAsync = {
   },
 
   run: async (sql, params = []) => {
+    loadStore();
     const s = sql.toLowerCase();
+    let result = { id: 0, changes: 0 };
 
     // Insert user
     if (s.includes('insert into users')) {
@@ -281,77 +312,78 @@ const jsDbAsync = {
       const id = store.autoId.users++;
       const newUser = { id, name, email: email.toLowerCase(), password, role: role || 'user', status: 'active', created_at: new Date().toISOString() };
       store.users.push(newUser);
-      return { id, changes: 1 };
+      result = { id, changes: 1 };
     }
 
     // Insert book
-    if (s.includes('insert into books')) {
+    else if (s.includes('insert into books')) {
       const [title, author, category, isbn, total_copies, description, cover_url] = params;
       const id = store.autoId.books++;
       const newBook = { id, title, author, category, isbn, total_copies: Number(total_copies), description, cover_url, created_at: new Date().toISOString() };
       store.books.push(newBook);
-      return { id, changes: 1 };
+      result = { id, changes: 1 };
     }
 
     // Update book
-    if (s.includes('update books')) {
+    else if (s.includes('update books')) {
       const [title, author, category, isbn, total_copies, description, cover_url, bookId] = params;
       const b = store.books.find(x => x.id === Number(bookId));
       if (b) {
         b.title = title; b.author = author; b.category = category; b.isbn = isbn;
         b.total_copies = Number(total_copies); b.description = description; b.cover_url = cover_url;
       }
-      return { id: Number(bookId), changes: 1 };
+      result = { id: Number(bookId), changes: 1 };
     }
 
     // Delete book
-    if (s.includes('delete from books')) {
+    else if (s.includes('delete from books')) {
       const bookId = Number(params[0]);
       store.books = store.books.filter(x => x.id !== bookId);
       store.bookings = store.bookings.filter(x => x.book_id !== bookId);
-      return { changes: 1 };
+      result = { changes: 1 };
     }
 
     // Insert booking
-    if (s.includes('insert into bookings')) {
+    else if (s.includes('insert into bookings')) {
       const [booking_ref, user_id, book_id, booking_date, start_time, end_time] = params;
       const id = store.autoId.bookings++;
       const newBooking = { id, booking_ref, user_id: Number(user_id), book_id: Number(book_id), booking_date, start_time, end_time, status: 'confirmed', created_at: new Date().toISOString() };
       store.bookings.push(newBooking);
-      return { id, changes: 1 };
+      result = { id, changes: 1 };
     }
 
     // Update booking status
-    if (s.includes('update bookings set status = ?')) {
+    else if (s.includes('update bookings set status = ?')) {
       const [status, bookingId] = params;
       const b = store.bookings.find(x => x.id === Number(bookingId));
       if (b) b.status = status;
-      return { changes: 1 };
+      result = { changes: 1 };
     }
 
     // Update user role / status
-    if (s.includes('update users set role = ?')) {
+    else if (s.includes('update users set role = ?')) {
       const [role, userId] = params;
       const u = store.users.find(x => x.id === Number(userId));
       if (u) u.role = role;
-      return { changes: 1 };
+      result = { changes: 1 };
     }
 
-    if (s.includes('update users set status = ?')) {
+    else if (s.includes('update users set status = ?')) {
       const [status, userId] = params;
       const u = store.users.find(x => x.id === Number(userId));
       if (u) u.status = status;
-      return { changes: 1 };
+      result = { changes: 1 };
     }
 
     // Insert or replace settings
-    if (s.includes('into settings')) {
+    else if (s.includes('into settings')) {
       const [key, value] = params;
       store.settings[key] = value;
-      return { changes: 1 };
+      result = { changes: 1 };
     }
 
-    return { id: 0, changes: 0 };
+    saveStore();
+    return result;
   }
 };
 
@@ -409,6 +441,8 @@ async function initDatabase() {
     `);
   }
 
+  loadStore();
+
   // Seed default admin and user
   const adminPasswordHash = await bcrypt.hash('admin123', 10);
   const userPasswordHash = await bcrypt.hash('user123', 10);
@@ -448,6 +482,7 @@ async function initDatabase() {
     await dbAsync.run("INSERT INTO bookings (booking_ref, user_id, book_id, booking_date, start_time, end_time, status) VALUES ('LIB-DEMO1', 2, 1, ?, '10:00', '12:00', 'confirmed')", [today]);
   }
 
+  saveStore();
   initialized = true;
   console.log('Database initialized successfully.');
 }
